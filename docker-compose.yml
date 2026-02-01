@@ -1,0 +1,55 @@
+# docker-compose.yml
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: cocow-postgres
+    environment:
+      POSTGRES_DB: cocow
+      POSTGRES_USER: cocow_user
+      POSTGRES_PASSWORD: cocow_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./cocow-api/seed_data.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - cocow-network
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cocow_user -d cocow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API service
+  cocow-api:
+    build: ./cocow-api
+    container_name: cocow-api
+    environment:
+      DATABASE_URL: postgresql://cocow_user:cocow_pass@postgres:5432/cocow
+      NODE_ENV: production
+    networks:
+      - cocow-network
+    expose:
+      - 3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Frontend static file service
+  cocow-web:
+    build: ./cocow-web
+    container_name: cocow-web
+    networks:
+      - cocow-network
+    expose:
+      - 8080
+
+volumes:
+  postgres_data:
+
+networks:
+  cocow-network:
+    external: true
+    name: cocow-network
+

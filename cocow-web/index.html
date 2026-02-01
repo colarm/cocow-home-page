@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cocow</title>
+    <!-- 预加载主题配置 -->
+    <script src="/theme-config.js"></script>
+    <!-- 应用主题脚本，避免闪烁 -->
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'coconut';
+        const themeColors = window.__THEME_CONFIG__[savedTheme] || window.__THEME_CONFIG__.coconut;
+        const root = document.documentElement;
+        
+        Object.entries(themeColors).forEach(([key, value]) => {
+          const cssVarName = key.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
+          root.style.setProperty('--color-' + cssVarName, value);
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

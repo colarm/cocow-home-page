@@ -1,0 +1,36 @@
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Category {
+    id        String    @id @default(uuid()) @db.Uuid
+    name      String    @db.VarChar(100)
+    icon      String    @db.VarChar(100)
+    order     Int       @default(0) @map("order")
+    createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+    websites  Website[]
+
+    @@map("categories")
+}
+
+model Website {
+    id         String    @id @default(uuid()) @db.Uuid
+    name       String    @db.VarChar(100)
+    url        String
+    icon       String
+    categoryId String    @map("category_id") @db.Uuid
+    isFeatured Boolean?  @default(false) @map("is_featured")
+    createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+    category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+    @@index([categoryId], map: "idx_websites_category")
+    @@index([isFeatured], map: "idx_websites_featured")
+    @@map("websites")
+}
