@@ -10,7 +10,6 @@ services:
       POSTGRES_PASSWORD: cocow_pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./cocow-api/seed_data.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - cocow-network
     ports:
