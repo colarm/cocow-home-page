@@ -79,68 +79,74 @@ jobs:
 
       - name: Build and start services
         run: |
-          ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_HOST" bash -s << 'ENDSSH'
+            set -e
             cd ~/cocow-app
+
             COMPOSE_CMD="docker compose"
-            if command -v docker-compose >/dev/null 2>&1; then
+            if ! docker compose version >/dev/null 2>&1; then
               COMPOSE_CMD="docker-compose"
             fi
-            
-            # 创建网络（如果不存在）
+
+            # 创建外部网络（如果不存在）
             docker network inspect cocow-network >/dev/null 2>&1 || docker network create cocow-network
-            
+            docker network inspect sso-network    >/dev/null 2>&1 || docker network create sso-network
+
             # 备份当前状态
             $COMPOSE_CMD ps > deployment-backup-$(date +%Y%m%d-%H%M%S).txt 2>/dev/null || true
-            
+
             # 停止旧容器
             $COMPOSE_CMD down
-            
+
             # 在服务器上构建镜像
             $COMPOSE_CMD build --no-cache
-            
+
             # 启动服务
             $COMPOSE_CMD up -d
-            
-            # 等待服务启动
+
+            # 等待服务启动（postgres healthcheck 需要时间）
             echo "Waiting for services to start..."
-            sleep 15
-            
+            sleep 30
+
             # 检查服务状态
             $COMPOSE_CMD ps
-            
+
             # 清理悬空镜像
             docker image prune -f
-          EOF
+          ENDSSH
 
       - name: Health check
         run: |
-          ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_HOST" bash -s << 'ENDSSH'
             cd ~/cocow-app
+
             COMPOSE_CMD="docker compose"
-            if command -v docker-compose >/dev/null 2>&1; then
+            if ! docker compose version >/dev/null 2>&1; then
               COMPOSE_CMD="docker-compose"
             fi
-            
-            # 检查容器是否运行
-            if ! $COMPOSE_CMD ps | grep -q "Up"; then
+
+            # Docker Compose v1 shows "Up", v2 shows "running"
+            if ! $COMPOSE_CMD ps | grep -qiE "up|running"; then
               echo "❌ Error: Containers are not running"
-              $COMPOSE_CMD logs
+              $COMPOSE_CMD logs --tail=50
               exit 1
             fi
-            
+
             echo "✅ Deployment successful!"
-          EOF
+          ENDSSH
 
       - name: Cleanup on failure
         if: failure()
         run: |
-          ssh "$SERVER_USER@$SERVER_HOST" << 'EOF'
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_HOST" bash -s << 'ENDSSH'
             cd ~/cocow-app
+
             COMPOSE_CMD="docker compose"
-            if command -v docker-compose >/dev/null 2>&1; then
+            if ! docker compose version >/dev/null 2>&1; then
               COMPOSE_CMD="docker-compose"
             fi
+
             echo "⚠️  Deployment failed, cleaning up..."
+            $COMPOSE_CMD logs --tail=100
             $COMPOSE_CMD down
-            $COMPOSE_CMD logs
-          EOF
+          ENDSSH
