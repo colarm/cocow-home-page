@@ -1,17 +1,30 @@
 import { useState, useRef, useEffect } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { useTheme } from '../theme/ThemeContext'
+import { useAuth, type AuthUser } from '../context/AuthContext'
 import { themes } from '../theme/themes'
 import './Header.css'
+
+function getInitials(user: AuthUser): string {
+  const name = (user.name ?? user.email ?? '').trim()
+  if (!name) return '?'
+  const words = name.split(/\s+/)
+  if (words.length >= 2) {
+    return ((words[0]?.[0] ?? '') + (words[1]?.[0] ?? '')).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+}
 
 interface HeaderProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
+  onLoginClick?: () => void
 }
 
-export default function Header({ searchQuery, setSearchQuery }: HeaderProps) {
+export default function Header({ searchQuery, setSearchQuery, onLoginClick }: HeaderProps) {
   const { language, setLanguage, t, availableLanguages } = useI18n()
   const { theme, setTheme } = useTheme()
+  const { user, logout } = useAuth()
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [showThemeMenu, setShowThemeMenu] = useState(false)
   const langMenuRef = useRef<HTMLDivElement>(null)
@@ -112,6 +125,36 @@ export default function Header({ searchQuery, setSearchQuery }: HeaderProps) {
 
           {/* Language Selector and Theme Selector */}
           <div className="header-actions">
+          {/* Auth Section */}
+            {user ? (
+              <div className="user-info">
+                <div className="user-avatar" aria-hidden="true">
+                  {getInitials(user)}
+                </div>
+                <span className="user-name" title={user.name ?? user.email}>
+                  {user.name ?? user.email ?? 'User'}
+                </span>
+                <button
+                  className="logout-btn"
+                  onClick={logout}
+                  aria-label="Sign out"
+                >
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="logout-btn-text">Sign Out</span>
+                </button>
+              </div>
+            ) : onLoginClick ? (
+              <button className="login-nav-btn" onClick={onLoginClick} aria-label="Sign in">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="login-nav-btn-text">Sign In</span>
+              </button>
+            ) : null}
             {/* Theme Selector */}
             <div className="selector-wrapper" ref={themeMenuRef}>
               <button

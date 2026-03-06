@@ -2,7 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { I18nProvider } from './i18n/I18nContext'
 import { ThemeProvider } from './theme/ThemeContext'
-import Home from './components/home'
+import { AuthProvider } from './context/AuthContext'
+import App from './App'
 import './main.css'
 
 const root = document.getElementById('root')
@@ -15,7 +16,9 @@ createRoot(root).render(
   <StrictMode>
     <ThemeProvider>
       <I18nProvider>
-        <Home />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </I18nProvider>
     </ThemeProvider>
   </StrictMode>

@@ -6,7 +6,11 @@ import Header from './Header'
 import SearchEngine from './SearchEngine'
 import './home.css'
 
-export default function Home() {
+interface HomeProps {
+  onLoginClick: () => void
+}
+
+export default function Home({ onLoginClick }: HomeProps) {
   const { t } = useI18n()
   const [websites, setWebsites] = useState<Website[]>([])
   const [categories, setCategories] = useState<Category[]>([
@@ -57,7 +61,7 @@ export default function Home() {
 
   return (
     <div className="home">
-      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} onLoginClick={onLoginClick} />
       
       <main className="main">
         <div className="container">

@@ -27,8 +27,10 @@ services:
     environment:
       DATABASE_URL: postgresql://cocow_user:cocow_pass@postgres:5432/cocow
       NODE_ENV: production
+      SSO_URL: ${SSO_URL:-http://sso-server:8080}
     networks:
       - cocow-network
+      - sso-network
     expose:
       - 3001
     depends_on:
@@ -51,4 +53,7 @@ networks:
   cocow-network:
     external: true
     name: cocow-network
+  sso-network:
+    external: true
+    name: sso-network
 
