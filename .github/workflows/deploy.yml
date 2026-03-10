@@ -109,6 +109,11 @@ jobs:
             # 停止旧容器
             $COMPOSE_CMD down
 
+            # 清理可能残留的同名容器，避免 container_name 冲突
+            for c in cocow-web cocow-api cocow-postgres; do
+              docker rm -f "$c" >/dev/null 2>&1 || true
+            done
+
             # 在服务器上构建镜像
             $COMPOSE_CMD build --no-cache
 
