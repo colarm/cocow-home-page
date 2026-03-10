@@ -35,10 +35,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-    environment: Cocow-dev
-    env:
-      SERVER_HOST: ${{ secrets.SERVER_HOST }}
-      SERVER_USER: ${{ secrets.SERVER_USER }}
+    environment: Cocow
 
     steps:
       - name: Checkout code
@@ -46,42 +43,59 @@ jobs:
 
       - name: Validate secrets
         run: |
-          if [ -z "$SERVER_HOST" ]; then
-            echo "❌ Error: SERVER_HOST secret is not set"
+          if [ -z "${{ secrets.SSH_HOST }}" ]; then
+            echo "❌ Error: SSH_HOST secret is not set"
             exit 1
           fi
-          if [ -z "$SERVER_USER" ]; then
-            echo "❌ Error: SERVER_USER secret is not set"
+          if [ -z "${{ secrets.SSH_USERNAME }}" ]; then
+            echo "❌ Error: SSH_USERNAME secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "❌ Error: SSH_PRIVATE_KEY secret is not set"
             exit 1
           fi
           echo "✅ All required secrets are configured"
-          echo "Deploying to: $SERVER_USER@$SERVER_HOST"
+          echo "Deploying to: ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}"
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Add server to known hosts
+      - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
+      - name: Pull latest code
         run: |
-          # 使用 rsync 同步代码到服务器
-          rsync -avz --delete \
-            --exclude 'node_modules' \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude '*.log' \
-            ./ "$SERVER_USER@$SERVER_HOST:~/cocow-app/"
+          SSH_PORT="${{ secrets.SSH_PORT || '22' }}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_rsa \
+              -p "$SSH_PORT" \
+              "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" bash -s << 'ENDSSH'
+            set -e
+            cd ~/cocow-home-page
+            if [ ! -d ".git" ]; then
+              echo "❌ Error: ~/cocow-home-page is not a git repository"
+              exit 1
+            fi
+            git pull origin main || git pull origin master
+          ENDSSH
 
       - name: Build and start services
         run: |
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_HOST" bash -s << 'ENDSSH'
+          SSH_PORT="${{ secrets.SSH_PORT || '22' }}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_rsa \
+              -p "$SSH_PORT" \
+              "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" bash -s << 'ENDSSH'
             set -e
-            cd ~/cocow-app
+            cd ~/cocow-home-page
+
+            if [ ! -f ".env" ]; then
+              echo "❌ Error: .env file not found in ~/cocow-home-page"
+              echo "Please create ~/cocow-home-page/.env with required production variables."
+              exit 1
+            fi
 
             COMPOSE_CMD="docker compose"
             if ! docker compose version >/dev/null 2>&1; then
@@ -91,9 +105,6 @@ jobs:
             # 创建外部网络（如果不存在）
             docker network inspect cocow-network >/dev/null 2>&1 || docker network create cocow-network
             docker network inspect sso-network    >/dev/null 2>&1 || docker network create sso-network
-
-            # 备份当前状态
-            $COMPOSE_CMD ps > deployment-backup-$(date +%Y%m%d-%H%M%S).txt 2>/dev/null || true
 
             # 停止旧容器
             $COMPOSE_CMD down
@@ -117,8 +128,12 @@ jobs:
 
       - name: Health check
         run: |
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_HOST" bash -s << 'ENDSSH'
-            cd ~/cocow-app
+          SSH_PORT="${{ secrets.SSH_PORT || '22' }}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_rsa \
+              -p "$SSH_PORT" \
+              "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" bash -s << 'ENDSSH'
+            cd ~/cocow-home-page
 
             COMPOSE_CMD="docker compose"
             if ! docker compose version >/dev/null 2>&1; then
@@ -138,8 +153,12 @@ jobs:
       - name: Cleanup on failure
         if: failure()
         run: |
-          ssh -o BatchMode=yes -o StrictHostKeyChecking=no "$SERVER_USER@$SERVER_HOST" bash -s << 'ENDSSH'
-            cd ~/cocow-app
+          SSH_PORT="${{ secrets.SSH_PORT || '22' }}"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_rsa \
+              -p "$SSH_PORT" \
+              "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" bash -s << 'ENDSSH'
+            cd ~/cocow-home-page
 
             COMPOSE_CMD="docker compose"
             if ! docker compose version >/dev/null 2>&1; then
