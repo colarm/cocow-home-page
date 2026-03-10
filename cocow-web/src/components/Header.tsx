@@ -6,7 +6,7 @@ import { themes } from '../theme/themes'
 import './Header.css'
 
 function getInitials(user: AuthUser): string {
-  const name = (user.name ?? user.email ?? '').trim()
+  const name = (user.username ?? user.email ?? '').trim()
   if (!name) return '?'
   const words = name.split(/\s+/)
   if (words.length >= 2) {
@@ -131,8 +131,8 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
                 <div className="user-avatar" aria-hidden="true">
                   {getInitials(user)}
                 </div>
-                <span className="user-name" title={user.name ?? user.email}>
-                  {user.name ?? user.email ?? 'User'}
+                <span className="user-name" title={user.username ?? user.email}>
+                  {user.username ?? user.email ?? 'User'}
                 </span>
                 <button
                   className="logout-btn"

@@ -2,7 +2,7 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 
 export type AuthUser = {
   sub: string
-  name?: string
+  username?: string
   email?: string
   email_verified?: boolean
   [key: string]: unknown

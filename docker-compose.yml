@@ -27,7 +27,14 @@ services:
     environment:
       DATABASE_URL: postgresql://cocow_user:cocow_pass@postgres:5432/cocow
       NODE_ENV: production
+      FRONTEND_URL: ${FRONTEND_URL}
       SSO_URL: ${SSO_URL:-http://sso-server:8080}
+      SSO_FRONTEND_URL: ${SSO_FRONTEND_URL}
+      SSO_CLIENT_ID: ${SSO_CLIENT_ID}
+      SSO_CLIENT_SECRET: ${SSO_CLIENT_SECRET}
+      SSO_REDIRECT_URI: ${SSO_REDIRECT_URI}
+      SSO_SERVICE_USERNAME: ${SSO_SERVICE_USERNAME}
+      SSO_SERVICE_PASSWORD: ${SSO_SERVICE_PASSWORD}
     networks:
       - cocow-network
       - sso-network
