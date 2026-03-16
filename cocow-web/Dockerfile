@@ -3,6 +3,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+ARG VITE_SSO_URL
+ENV VITE_SSO_URL=$VITE_SSO_URL
 RUN npm run build
 
 # Use Node to serve static files

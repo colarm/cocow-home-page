@@ -46,7 +46,10 @@ services:
 
   # Frontend static file service
   cocow-web:
-    build: ./cocow-web
+    build:
+      context: ./cocow-web
+      args:
+        VITE_SSO_URL: ${VITE_SSO_URL}
     container_name: cocow-web
     networks:
       - cocow-network
