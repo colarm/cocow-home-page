@@ -4,6 +4,17 @@ import type { AuthUser } from "../context/AuthContext";
 // ── Home API ──────────────────────────────────────────────────────────────
 const API_BASE = "/api/v1/home";
 
+// ── Cocow Search API ──────────────────────────────────────────────────────
+export async function cocowSearch(query: string): Promise<unknown[]> {
+  const params = new URLSearchParams({ q: query });
+  const response = await fetch(`/api/v1/search?${params}`);
+  if (!response.ok) {
+    throw new Error(`Search failed: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.results ?? [];
+}
+
 // ── Login API ─────────────────────────────────────────────────────────────
 const LOGIN_API = "/api/v1/login";
 
@@ -58,16 +69,28 @@ export async function redirectToSso(): Promise<void> {
 
 /**
  * Send the authorization code to cocow-api, which exchanges it for a token
- * and fetches userinfo from sso-server. Returns user + accessToken.
+ * and fetches userinfo from sso-server. Returns user; the token is stored
+ * as an HttpOnly cookie by the server and never exposed to JS.
  */
 export async function submitLoginCallback(
   code: string,
-): Promise<{ user: AuthUser; accessToken: string }> {
+): Promise<{ user: AuthUser }> {
   const res = await fetch(`${LOGIN_API}/callback`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ code }),
   });
   if (!res.ok) throw new Error(`Login callback failed (${res.status})`);
-  return res.json() as Promise<{ user: AuthUser; accessToken: string }>;
+  return res.json() as Promise<{ user: AuthUser }>;
+}
+
+/**
+ * Ask cocow-api to clear the auth_token HttpOnly cookie.
+ */
+export async function logoutFromApi(): Promise<void> {
+  await fetch(`${LOGIN_API}/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
 }

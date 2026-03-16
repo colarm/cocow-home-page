@@ -25,6 +25,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty(`--color-${cssVarName}`, value)
     })
 
+    // Map shadow color vars to --shadow-* aliases used throughout CSS
+    root.style.setProperty('--shadow-sm', themeConfig.colors.shadowSm)
+    root.style.setProperty('--shadow-md', themeConfig.colors.shadowMd)
+    root.style.setProperty('--shadow-lg', themeConfig.colors.shadowLg)
+    root.style.setProperty('--shadow-xl', themeConfig.colors.shadowXl)
+
     localStorage.setItem('theme', theme)
   }, [theme])
 

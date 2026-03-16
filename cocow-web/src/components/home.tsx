@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { fetchCategories, fetchWebsites } from '../api'
 import type { Website, Category } from '../types'
@@ -17,7 +17,6 @@ export default function Home({ onLoginClick }: HomeProps) {
     { id: 'all', name: t.categories.all, icon: '🌐', order: 0 }
   ])
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,23 +44,9 @@ export default function Home({ onLoginClick }: HomeProps) {
       .finally(() => setLoading(false))
   }, [selectedCategory])
 
-  const filteredWebsites = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return websites
-    }
-
-    const query = searchQuery.toLowerCase()
-    return websites.filter(
-      (site) =>
-        site.name.toLowerCase().includes(query) ||
-        site.url.toLowerCase().includes(query) ||
-        site.tags?.some((tag) => tag.toLowerCase().includes(query))
-    )
-  }, [websites, searchQuery])
-
   return (
     <div className="home">
-      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} onLoginClick={onLoginClick} />
+      <Header onLoginClick={onLoginClick} />
       
       <main className="main">
         <div className="container">
@@ -112,7 +97,7 @@ export default function Home({ onLoginClick }: HomeProps) {
                 </svg>
                 <p className="error-text">{error}</p>
               </div>
-            ) : filteredWebsites.length === 0 ? (
+            ) : websites.length === 0 ? (
               <div className="empty">
                 <svg
                   className="empty-icon"
@@ -128,13 +113,11 @@ export default function Home({ onLoginClick }: HomeProps) {
                     d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <p className="empty-text">
-                  {searchQuery ? t.nav.noResults : t.nav.noWebsites}
-                </p>
+                <p className="empty-text">{t.nav.noWebsites}</p>
               </div>
             ) : (
               <div className="website-grid">
-                {filteredWebsites.map((website) => (
+                {websites.map((website) => (
                   <a
                     key={website.id}
                     href={website.url}

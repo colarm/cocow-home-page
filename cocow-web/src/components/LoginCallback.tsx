@@ -10,9 +10,9 @@ import { submitLoginCallback } from '../api'
  *  2. Browser goes to SSO consent page
  *  3. SSO frontend redirects here:  /login/callback?code=…&state=…
  *  4. This component verifies CSRF state, then POSTs { code } to cocow-api
- *  5. cocow-api exchanges code → token → userinfo (server-side) and returns
- *     { user, accessToken }
- *  6. We persist the session via AuthContext and redirect to "/"
+ *  5. cocow-api exchanges code → token → userinfo (server-side), sets the
+ *     access token as an HttpOnly cookie, and returns { user }
+ *  6. We persist the user info via AuthContext and redirect to "/"
  */
 export default function LoginCallback() {
   const { login } = useAuth()
@@ -48,8 +48,8 @@ export default function LoginCallback() {
 
       // ── Exchange code via cocow-api ───────────────────────────────────
       try {
-        const { user, accessToken } = await submitLoginCallback(code)
-        login(user, accessToken)
+        const { user } = await submitLoginCallback(code)
+        login(user)
         window.location.replace('/')
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Login failed.')

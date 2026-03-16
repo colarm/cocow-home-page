@@ -17,9 +17,18 @@ export interface Theme {
     textSecondary: string;
     textTertiary: string;
     textInverse: string;
+    textOnAccent: string;
     borderLight: string;
     border: string;
     borderDark: string;
+    shadowSm: string;
+    shadowMd: string;
+    shadowLg: string;
+    shadowXl: string;
+    overlay: string;
+    overlayShadow: string;
+    error: string;
+    errorLight: string;
   };
 }
 

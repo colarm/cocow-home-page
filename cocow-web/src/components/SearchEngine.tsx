@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useI18n } from '../i18n/I18nContext'
+import { cocowSearch } from '../api'
 import './SearchEngine.css'
 
 interface SearchEngine {
@@ -10,9 +11,10 @@ interface SearchEngine {
 }
 
 const searchEngines: SearchEngine[] = [
+  { id: 'cocow', name: 'Cocow', icon: '🥥', url: '' },
   { id: 'google', name: 'Google', icon: '🔍', url: 'https://www.google.com/search?q=' },
-  { id: 'bing', name: 'Bing', icon: '🅱️', url: 'https://www.bing.com/search?q=' },
-  { id: 'baidu', name: '百度', icon: '🅱️', url: 'https://www.baidu.com/s?wd=' },
+  { id: 'bing', name: 'Bing', icon: '🔷', url: 'https://www.bing.com/search?q=' },
+  { id: 'baidu', name: '百度', icon: '🐾', url: 'https://www.baidu.com/s?wd=' },
   { id: 'duckduckgo', name: 'DuckDuckGo', icon: '🦆', url: 'https://duckduckgo.com/?q=' },
 ]
 
@@ -21,25 +23,41 @@ export default function SearchEngine() {
   const [query, setQuery] = useState('')
   const [selectedEngine, setSelectedEngine] = useState<SearchEngine>(searchEngines[0])
   const [showEngines, setShowEngines] = useState(false)
+  const engineMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (engineMenuRef.current && !engineMenuRef.current.contains(event.target as Node)) {
+        setShowEngines(false)
+      }
+    }
+    if (showEngines) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEngines])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (query.trim()) {
-      window.open(selectedEngine.url + encodeURIComponent(query), '_blank')
+    if (!query.trim()) return
+    if (selectedEngine.id === 'cocow') {
+      cocowSearch(query)
+      return
     }
+    window.open(selectedEngine.url + encodeURIComponent(query), '_blank')
   }
 
   return (
     <div className="search-engine">
       <form className="search-engine-form" onSubmit={handleSearch}>
-        <div className="search-engine-selector">
+        <div className="search-engine-selector selector-wrapper" ref={engineMenuRef}>
           <button
             type="button"
-            className="engine-button"
+            className="action-btn"
             onClick={() => setShowEngines(!showEngines)}
           >
             <span className="engine-icon">{selectedEngine.icon}</span>
-            <span className="engine-name">{selectedEngine.name}</span>
+            <span className="action-text">{selectedEngine.name}</span>
             <svg
               className={`chevron-icon ${showEngines ? 'rotate' : ''}`}
               fill="none"
@@ -56,36 +74,38 @@ export default function SearchEngine() {
           </button>
 
           {showEngines && (
-            <div className="engine-menu">
-              {searchEngines.map((engine) => (
-                <button
-                  key={engine.id}
-                  type="button"
-                  className={`engine-item ${selectedEngine.id === engine.id ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedEngine(engine)
-                    setShowEngines(false)
-                  }}
-                >
-                  <span className="engine-icon">{engine.icon}</span>
-                  <span className="engine-name">{engine.name}</span>
-                  {selectedEngine.id === engine.id && (
-                    <svg
-                      className="check-icon"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </button>
-              ))}
+            <div className="selector-menu engine-menu">
+              <div className="menu-list">
+                {searchEngines.map((engine) => (
+                  <button
+                    key={engine.id}
+                    type="button"
+                    className={`menu-item ${selectedEngine.id === engine.id ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedEngine(engine)
+                      setShowEngines(false)
+                    }}
+                  >
+                    <span className="engine-icon">{engine.icon}</span>
+                    <span className="menu-item-text">{engine.name}</span>
+                    {selectedEngine.id === engine.id && (
+                      <svg
+                        className="check-icon"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -18,6 +18,12 @@
           const cssVarName = key.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
           root.style.setProperty('--color-' + cssVarName, value);
         });
+
+        // Map shadow vars
+        root.style.setProperty('--shadow-sm', themeColors.shadowSm);
+        root.style.setProperty('--shadow-md', themeColors.shadowMd);
+        root.style.setProperty('--shadow-lg', themeColors.shadowLg);
+        root.style.setProperty('--shadow-xl', themeColors.shadowXl);
       })();
     </script>
   </head>

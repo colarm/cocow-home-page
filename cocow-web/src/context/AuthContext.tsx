@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import { logoutFromApi } from '../api'
 
 export type AuthUser = {
   sub: string
@@ -10,15 +11,13 @@ export type AuthUser = {
 
 type AuthContextType = {
   user: AuthUser | null
-  accessToken: string | null
-  login: (user: AuthUser, token: string) => void
+  login: (user: AuthUser) => void
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 const STORAGE_KEY_USER = 'auth_user'
-const STORAGE_KEY_TOKEN = 'auth_token'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -30,26 +29,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   })
 
-  const [accessToken, setAccessToken] = useState<string | null>(() =>
-    localStorage.getItem(STORAGE_KEY_TOKEN)
-  )
-
-  const login = (newUser: AuthUser, token: string) => {
+  const login = (newUser: AuthUser) => {
     setUser(newUser)
-    setAccessToken(token)
     localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newUser))
-    localStorage.setItem(STORAGE_KEY_TOKEN, token)
   }
 
   const logout = () => {
     setUser(null)
-    setAccessToken(null)
     localStorage.removeItem(STORAGE_KEY_USER)
-    localStorage.removeItem(STORAGE_KEY_TOKEN)
+    logoutFromApi().catch(() => {}) // best-effort: clear server-side HttpOnly cookie
   }
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -2,11 +2,11 @@
 :root {
   --container-padding: var(--spacing-lg);
   
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px rgba(44, 40, 37, 0.05);
-  --shadow-md: 0 2px 8px rgba(44, 40, 37, 0.08);
-  --shadow-lg: 0 4px 16px rgba(44, 40, 37, 0.1);
-  --shadow-xl: 0 8px 32px rgba(44, 40, 37, 0.12);
+  /* 阴影（值由 ThemeContext 从 theme-config.js 动态注入） */
+  --shadow-sm: unset;
+  --shadow-md: unset;
+  --shadow-lg: unset;
+  --shadow-xl: unset;
   
   /* 圆角 */
   --radius-sm: 4px;

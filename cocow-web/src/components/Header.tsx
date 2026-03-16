@@ -16,19 +16,19 @@ function getInitials(user: AuthUser): string {
 }
 
 interface HeaderProps {
-  searchQuery: string
-  setSearchQuery: (query: string) => void
   onLoginClick?: () => void
 }
 
-export default function Header({ searchQuery, setSearchQuery, onLoginClick }: HeaderProps) {
+export default function Header({ onLoginClick }: HeaderProps) {
   const { language, setLanguage, t, availableLanguages } = useI18n()
   const { theme, setTheme } = useTheme()
   const { user, logout } = useAuth()
   const [showLangMenu, setShowLangMenu] = useState(false)
   const [showThemeMenu, setShowThemeMenu] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
   const langMenuRef = useRef<HTMLDivElement>(null)
   const themeMenuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   // Detect if mobile
   const isMobile = () => window.innerWidth <= 768
@@ -42,17 +42,20 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
       if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
         setShowThemeMenu(false)
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
     }
 
-    if (showLangMenu || showThemeMenu) {
+    if (showLangMenu || showThemeMenu || showUserMenu) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showLangMenu, showThemeMenu])
+  }, [showLangMenu, showThemeMenu, showUserMenu])
 
   // Prevent body scroll when menu is open on mobile
   useEffect(() => {
-    if ((showLangMenu || showThemeMenu) && isMobile()) {
+    if ((showLangMenu || showThemeMenu || showUserMenu) && isMobile()) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -60,7 +63,7 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
     return () => {
       document.body.style.overflow = ''
     }
-  }, [showLangMenu, showThemeMenu])
+  }, [showLangMenu, showThemeMenu, showUserMenu])
 
   return (
     <header className="header">
@@ -75,90 +78,98 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="header-search">
-            <div className="search-wrapper">
-              <svg
-                className="search-icon"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                className="search-input"
-                placeholder={t.nav.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button
-                  className="search-clear"
-                  onClick={() => setSearchQuery('')}
-                  aria-label="Clear search"
-                >
-                  <svg
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-
           {/* Language Selector and Theme Selector */}
           <div className="header-actions">
-          {/* Auth Section */}
+{/* Auth Section */}
             {user ? (
-              <div className="user-info">
-                <div className="user-avatar" aria-hidden="true">
-                  {getInitials(user)}
-                </div>
-                <span className="user-name" title={user.username ?? user.email}>
-                  {user.username ?? user.email ?? 'User'}
-                </span>
+              <div className="selector-wrapper" ref={userMenuRef}>
                 <button
-                  className="logout-btn"
-                  onClick={logout}
-                  aria-label="Sign out"
+                  className="action-btn action-btn--ghost"
+                  onClick={() => {
+                    setShowUserMenu(!showUserMenu)
+                    setShowLangMenu(false)
+                    setShowThemeMenu(false)
+                  }}
+                  aria-label="User menu"
+                  aria-expanded={showUserMenu}
                 >
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  <span className="logout-btn-text">Sign Out</span>
+                  <span className="user-avatar action-icon" aria-hidden="true">
+                    {getInitials(user)}
+                  </span>
+                  <span className="action-text">
+                    {user.username ?? user.email ?? 'User'}
+                  </span>
                 </button>
+
+                {showUserMenu && (
+                  <>
+                    <div
+                      className="menu-overlay"
+                      onClick={() => setShowUserMenu(false)}
+                      aria-hidden="true"
+                    />
+                    <div className="selector-menu user-menu">
+                      <div className="menu-header">
+                        <span className="menu-title">Account</span>
+                        <button
+                          className="menu-close"
+                          onClick={() => setShowUserMenu(false)}
+                          aria-label="Close"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="user-menu-info">
+                        <div className="user-menu-avatar">{getInitials(user)}</div>
+                        <div className="user-menu-details">
+                          {user.username && <span className="user-menu-name">{user.username}</span>}
+                          {user.email && <span className="user-menu-email">{user.email}</span>}
+                        </div>
+                      </div>
+                      <div className="menu-divider" />
+                      <div className="menu-list">
+                        <a
+                          className="menu-item"
+                          href={import.meta.env.VITE_SSO_URL}
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <svg className="menu-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="menu-item-text">Profile Settings</span>
+                        </a>
+                        <button
+                          className="menu-item menu-item-danger"
+                          onClick={() => { logout(); setShowUserMenu(false) }}
+                        >
+                          <svg className="menu-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          <span className="menu-item-text">Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : onLoginClick ? (
-              <button className="login-nav-btn" onClick={onLoginClick} aria-label="Sign in">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button className="action-btn" onClick={onLoginClick} aria-label="Sign in">
+                <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span className="login-nav-btn-text">Sign In</span>
+                <span className="action-text">Sign In</span>
               </button>
             ) : null}
             {/* Theme Selector */}
             <div className="selector-wrapper" ref={themeMenuRef}>
               <button
-                className="selector-button theme-button"
+                className="action-btn"
                 onClick={() => {
                   setShowThemeMenu(!showThemeMenu)
                   setShowLangMenu(false)
@@ -167,7 +178,7 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
                 aria-expanded={showThemeMenu}
               >
                 <svg
-                  className="selector-icon"
+                  className="action-icon"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -179,7 +190,7 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
                     d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
                   />
                 </svg>
-                <span className="selector-text">{t.theme[theme]}</span>
+                <span className="action-text">{t.theme[theme]}</span>
               </button>
 
               {showThemeMenu && (
@@ -232,7 +243,7 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
             {/* Language Selector */}
             <div className="selector-wrapper" ref={langMenuRef}>
               <button
-                className="selector-button language-button"
+                className="action-btn"
                 onClick={() => {
                   setShowLangMenu(!showLangMenu)
                   setShowThemeMenu(false)
@@ -241,7 +252,7 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
                 aria-expanded={showLangMenu}
               >
                 <svg
-                  className="selector-icon"
+                  className="action-icon"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -253,7 +264,7 @@ export default function Header({ searchQuery, setSearchQuery, onLoginClick }: He
                     d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
                   />
                 </svg>
-                <span className="selector-text">{t.language.name}</span>
+                <span className="action-text">{t.language.name}</span>
               </button>
 
               {showLangMenu && (

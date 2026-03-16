@@ -1,9 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  buildAuthorizationUrl,
-  handleCallbackCode,
-  getFrontendUrl,
-} from "./login.services.js";
+import { buildAuthorizationUrl, handleCallbackCode } from "./login.services.js";
 
 /**
  * GET /api/v1/login/sso
@@ -30,8 +26,10 @@ export const ssoRedirect = (req: Request, res: Response) => {
  * this endpoint exchanges the code for a token and fetches the user profile
  * entirely server-side so the client_secret never reaches the browser.
  *
- * Body: { code: string, state: string }
- * Response: { user: UserInfo, accessToken: string }
+ * The access token is stored in an HttpOnly cookie — JS cannot read it.
+ *
+ * Body: { code: string }
+ * Response: { user: UserInfo }
  */
 export const ssoCallbackPost = async (req: Request, res: Response) => {
   const { code, error, error_description } = req.body as {
@@ -51,12 +49,37 @@ export const ssoCallbackPost = async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await handleCallbackCode(code);
-    return res.json(result); // { user, accessToken }
+    const { user, accessToken } = await handleCallbackCode(code);
+
+    // Store the access token in an HttpOnly cookie so JS cannot read it
+    res.cookie("auth_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: "/",
+    });
+
+    return res.json({ user }); // token stays server-side
   } catch (err) {
     console.error("SSO callback error:", err);
     return res
       .status(502)
       .json({ error: "token_exchange_failed", detail: String(err) });
   }
+};
+
+/**
+ * POST /api/v1/login/logout
+ *
+ * Clears the auth_token HttpOnly cookie.
+ */
+export const ssoLogout = (req: Request, res: Response) => {
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+  });
+  res.json({ ok: true });
 };
