@@ -9,6 +9,7 @@ export const arSA: Translations = {
     searchPlaceholder: "البحث عن المواقع...",
     noResults: "لم يتم العثور على مواقع",
     noWebsites: "لا توجد مواقع متاحة",
+    loading: "جارٍ التحميل...",
   },
   language: {
     name: "العربية",
@@ -27,5 +28,11 @@ export const arSA: Translations = {
   searchEngine: {
     prefix: "البحث باستخدام ",
     suffix: "...",
+  },
+  user: {
+    account: "الحساب",
+    profileSettings: "إعدادات الملف الشخصي",
+    signOut: "تسجيل الخروج",
+    signIn: "تسجيل الدخول",
   },
 };

@@ -9,6 +9,7 @@ export const jaJP: Translations = {
     searchPlaceholder: "ウェブサイトを検索...",
     noResults: "ウェブサイトが見つかりません",
     noWebsites: "ウェブサイトがありません",
+    loading: "読み込み中...",
   },
   language: {
     name: "日本語",
@@ -27,5 +28,11 @@ export const jaJP: Translations = {
   searchEngine: {
     prefix: "",
     suffix: "で検索...",
+  },
+  user: {
+    account: "アカウント",
+    profileSettings: "プロフィール設定",
+    signOut: "サインアウト",
+    signIn: "サインイン",
   },
 };

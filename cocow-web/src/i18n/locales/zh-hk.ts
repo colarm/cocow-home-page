@@ -9,6 +9,7 @@ export const zhHK: Translations = {
     searchPlaceholder: "搜尋網站...",
     noResults: "未找到網站",
     noWebsites: "暫無網站",
+    loading: "載入中...",
   },
   language: {
     name: "繁體中文 (香港)",
@@ -27,5 +28,11 @@ export const zhHK: Translations = {
   searchEngine: {
     prefix: "使用 ",
     suffix: " 搜尋...",
+  },
+  user: {
+    account: "帳戶",
+    profileSettings: "個人設定",
+    signOut: "登出",
+    signIn: "登入",
   },
 };

@@ -9,6 +9,7 @@ export const frFR: Translations = {
     searchPlaceholder: "Rechercher des sites web...",
     noResults: "Aucun site web trouvé",
     noWebsites: "Aucun site web disponible",
+    loading: "Chargement...",
   },
   language: {
     name: "Français",
@@ -27,5 +28,11 @@ export const frFR: Translations = {
   searchEngine: {
     prefix: "Rechercher avec ",
     suffix: "...",
+  },
+  user: {
+    account: "Compte",
+    profileSettings: "Paramètres du profil",
+    signOut: "Se déconnecter",
+    signIn: "Se connecter",
   },
 };

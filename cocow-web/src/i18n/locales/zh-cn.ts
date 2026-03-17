@@ -9,6 +9,7 @@ export const zhCN: Translations = {
     searchPlaceholder: "搜索网站...",
     noResults: "未找到网站",
     noWebsites: "暂无网站",
+    loading: "加载中...",
   },
   language: {
     name: "简体中文",
@@ -27,5 +28,11 @@ export const zhCN: Translations = {
   searchEngine: {
     prefix: "使用 ",
     suffix: " 搜索...",
+  },
+  user: {
+    account: "账户",
+    profileSettings: "个人设置",
+    signOut: "退出登录",
+    signIn: "登录",
   },
 };

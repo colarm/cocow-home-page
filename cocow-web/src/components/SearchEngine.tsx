@@ -11,7 +11,8 @@ interface SearchEngine {
 }
 
 const searchEngines: SearchEngine[] = [
-  { id: 'cocow', name: 'Cocow', icon: '🥥', url: '' },
+  // Cocow search is not implemented yet, so we will use Google as default for now
+  // { id: 'cocow', name: 'Cocow', icon: '🥥', url: '' },
   { id: 'google', name: 'Google', icon: '🔍', url: 'https://www.google.com/search?q=' },
   { id: 'bing', name: 'Bing', icon: '🔷', url: 'https://www.bing.com/search?q=' },
   { id: 'baidu', name: '百度', icon: '🐾', url: 'https://www.baidu.com/s?wd=' },
@@ -21,7 +22,13 @@ const searchEngines: SearchEngine[] = [
 export default function SearchEngine() {
   const { t } = useI18n()
   const [query, setQuery] = useState('')
-  const [selectedEngine, setSelectedEngine] = useState<SearchEngine>(searchEngines[0])
+  const [selectedEngine, setSelectedEngine] = useState<SearchEngine>(() => {
+    const saved = localStorage.getItem('selectedSearchEngine')
+    return searchEngines.find(e => e.id === saved) ?? searchEngines[0]
+  })
+
+  const getEngineName = (engine: SearchEngine) =>
+    engine.id === 'cocow' ? t.site.title : engine.name
   const [showEngines, setShowEngines] = useState(false)
   const engineMenuRef = useRef<HTMLDivElement>(null)
 
@@ -57,7 +64,7 @@ export default function SearchEngine() {
             onClick={() => setShowEngines(!showEngines)}
           >
             <span className="engine-icon">{selectedEngine.icon}</span>
-            <span className="action-text">{selectedEngine.name}</span>
+            <span className="action-text">{getEngineName(selectedEngine)}</span>
             <svg
               className={`chevron-icon ${showEngines ? 'rotate' : ''}`}
               fill="none"
@@ -83,11 +90,12 @@ export default function SearchEngine() {
                     className={`menu-item ${selectedEngine.id === engine.id ? 'active' : ''}`}
                     onClick={() => {
                       setSelectedEngine(engine)
+                      localStorage.setItem('selectedSearchEngine', engine.id)
                       setShowEngines(false)
                     }}
                   >
                     <span className="engine-icon">{engine.icon}</span>
-                    <span className="menu-item-text">{engine.name}</span>
+                    <span className="menu-item-text">{getEngineName(engine)}</span>
                     {selectedEngine.id === engine.id && (
                       <svg
                         className="check-icon"
@@ -114,7 +122,7 @@ export default function SearchEngine() {
           <input
             type="text"
             className="search-engine-input"
-            placeholder={`${t.searchEngine.prefix}${selectedEngine.name}${t.searchEngine.suffix}`}
+            placeholder={`${t.searchEngine.prefix}${getEngineName(selectedEngine)}${t.searchEngine.suffix}`}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

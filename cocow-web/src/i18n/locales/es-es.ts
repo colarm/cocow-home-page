@@ -9,6 +9,7 @@ export const esES: Translations = {
     searchPlaceholder: "Buscar sitios web...",
     noResults: "No se encontraron sitios web",
     noWebsites: "No hay sitios web disponibles",
+    loading: "Cargando...",
   },
   language: {
     name: "Español",
@@ -27,5 +28,11 @@ export const esES: Translations = {
   searchEngine: {
     prefix: "Buscar con ",
     suffix: "...",
+  },
+  user: {
+    account: "Cuenta",
+    profileSettings: "Configuración de perfil",
+    signOut: "Cerrar sesión",
+    signIn: "Iniciar sesión",
   },
 };

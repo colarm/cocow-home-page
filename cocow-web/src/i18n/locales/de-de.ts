@@ -9,6 +9,7 @@ export const deDE: Translations = {
     searchPlaceholder: "Websites suchen...",
     noResults: "Keine Websites gefunden",
     noWebsites: "Keine Websites verfügbar",
+    loading: "Wird geladen...",
   },
   language: {
     name: "Deutsch",
@@ -27,5 +28,11 @@ export const deDE: Translations = {
   searchEngine: {
     prefix: "Mit ",
     suffix: " suchen...",
+  },
+  user: {
+    account: "Konto",
+    profileSettings: "Profileinstellungen",
+    signOut: "Abmelden",
+    signIn: "Anmelden",
   },
 };

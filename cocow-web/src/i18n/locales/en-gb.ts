@@ -9,6 +9,7 @@ export const enGB: Translations = {
     searchPlaceholder: "Search websites...",
     noResults: "No websites found",
     noWebsites: "No websites available",
+    loading: "Loading...",
   },
   language: {
     name: "English (UK)",
@@ -27,5 +28,11 @@ export const enGB: Translations = {
   searchEngine: {
     prefix: "Search with ",
     suffix: "...",
+  },
+  user: {
+    account: "Account",
+    profileSettings: "Profile Settings",
+    signOut: "Sign Out",
+    signIn: "Sign In",
   },
 };

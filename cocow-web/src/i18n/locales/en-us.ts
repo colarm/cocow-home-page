@@ -7,6 +7,7 @@ export const enUS = {
     searchPlaceholder: "Search websites...",
     noResults: "No websites found",
     noWebsites: "No websites available",
+    loading: "Loading...",
   },
   language: {
     name: "English (US)",
@@ -25,6 +26,12 @@ export const enUS = {
   searchEngine: {
     prefix: "Search with ",
     suffix: "...",
+  },
+  user: {
+    account: "Account",
+    profileSettings: "Profile Settings",
+    signOut: "Sign Out",
+    signIn: "Sign In",
   },
 };
 

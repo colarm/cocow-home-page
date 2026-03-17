@@ -9,6 +9,7 @@ export const koKR: Translations = {
     searchPlaceholder: "웹사이트 검색...",
     noResults: "웹사이트를 찾을 수 없습니다",
     noWebsites: "사용 가능한 웹사이트 없음",
+    loading: "불러오는 중...",
   },
   language: {
     name: "한국어",
@@ -27,5 +28,11 @@ export const koKR: Translations = {
   searchEngine: {
     prefix: "",
     suffix: "로 검색...",
+  },
+  user: {
+    account: "계정",
+    profileSettings: "프로필 설정",
+    signOut: "로그아웃",
+    signIn: "로그인",
   },
 };

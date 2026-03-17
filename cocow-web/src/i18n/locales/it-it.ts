@@ -9,6 +9,7 @@ export const itIT: Translations = {
     searchPlaceholder: "Cerca siti web...",
     noResults: "Nessun sito web trovato",
     noWebsites: "Nessun sito web disponibile",
+    loading: "Caricamento...",
   },
   language: {
     name: "Italiano",
@@ -27,5 +28,11 @@ export const itIT: Translations = {
   searchEngine: {
     prefix: "Cerca con ",
     suffix: "...",
+  },
+  user: {
+    account: "Account",
+    profileSettings: "Impostazioni profilo",
+    signOut: "Esci",
+    signIn: "Accedi",
   },
 };

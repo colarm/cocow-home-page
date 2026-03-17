@@ -77,7 +77,7 @@ export default function Home({ onLoginClick }: HomeProps) {
             {loading ? (
               <div className="loading">
                 <div className="loading-spinner" />
-                <p className="loading-text">Loading...</p>
+                <p className="loading-text">{t.nav.loading}</p>
               </div>
             ) : error ? (
               <div className="error">

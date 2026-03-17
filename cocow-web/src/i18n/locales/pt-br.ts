@@ -9,6 +9,7 @@ export const ptBR: Translations = {
     searchPlaceholder: "Pesquisar sites...",
     noResults: "Nenhum site encontrado",
     noWebsites: "Nenhum site disponível",
+    loading: "Carregando...",
   },
   language: {
     name: "Português (BR)",
@@ -27,5 +28,11 @@ export const ptBR: Translations = {
   searchEngine: {
     prefix: "Pesquisar com ",
     suffix: "...",
+  },
+  user: {
+    account: "Conta",
+    profileSettings: "Configurações do perfil",
+    signOut: "Sair",
+    signIn: "Entrar",
   },
 };

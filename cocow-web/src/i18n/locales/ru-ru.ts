@@ -9,6 +9,7 @@ export const ruRU: Translations = {
     searchPlaceholder: "Поиск веб-сайтов...",
     noResults: "Веб-сайты не найдены",
     noWebsites: "Нет доступных веб-сайтов",
+    loading: "Загрузка...",
   },
   language: {
     name: "Русский",
@@ -27,5 +28,11 @@ export const ruRU: Translations = {
   searchEngine: {
     prefix: "Поиск через ",
     suffix: "...",
+  },
+  user: {
+    account: "Аккаунт",
+    profileSettings: "Настройки профиля",
+    signOut: "Выйти",
+    signIn: "Войти",
   },
 };
