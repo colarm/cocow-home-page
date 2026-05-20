@@ -16,3 +16,20 @@ export interface Category {
   icon: string
   order: number
 }
+
+export interface UserWebsite {
+  id: string
+  userId: string
+  websiteId: string
+  displayOrder: number
+  isPinned: boolean
+  createdAt: string
+  website: Website & { category?: Category }
+}
+
+export interface LocalUser {
+  sub: string
+  role: 'VIEWER' | 'ADMIN'
+  createdAt: string
+  updatedAt: string
+}

@@ -6,6 +6,7 @@ export type AuthUser = {
   username?: string
   email?: string
   email_verified?: boolean
+  localRole?: string
   [key: string]: unknown
 }
 

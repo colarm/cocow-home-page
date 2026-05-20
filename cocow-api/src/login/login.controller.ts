@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { buildAuthorizationUrl, handleCallbackCode } from "./login.services.js";
+import { upsertLocalUser } from "../localUser/localUser.service.js";
 
 /**
  * GET /api/v1/login/sso
@@ -51,6 +52,9 @@ export const ssoCallbackPost = async (req: Request, res: Response) => {
   try {
     const { user, accessToken } = await handleCallbackCode(code);
 
+    // Upsert local user record and attach localRole to the response
+    const localUser = await upsertLocalUser(user.sub);
+
     // Store the access token in an HttpOnly cookie so JS cannot read it
     res.cookie("auth_token", accessToken, {
       httpOnly: true,
@@ -60,7 +64,7 @@ export const ssoCallbackPost = async (req: Request, res: Response) => {
       path: "/",
     });
 
-    return res.json({ user }); // token stays server-side
+    return res.json({ user: { ...user, localRole: localUser.role } }); // token stays server-side
   } catch (err) {
     console.error("SSO callback error:", err);
     return res

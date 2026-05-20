@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { optionalAuth } from "../auth/auth.middleware.js";
 import {
   getCategories,
   getWebsiteById,
@@ -11,7 +12,7 @@ const router = Router();
 
 router.get("/health", health);
 router.get("/categories", getCategories);
-router.get("/websites", getWebsites);
+router.get("/websites", optionalAuth, getWebsites);
 router.get("/websites/:id", getWebsiteById);
 router.get("/search", searchWebsites);
 

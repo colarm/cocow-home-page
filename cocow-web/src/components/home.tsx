@@ -8,9 +8,11 @@ import './home.css'
 
 interface HomeProps {
   onLoginClick: () => void
+  onOpenMyWebsites?: () => void
+  onOpenAdmin?: () => void
 }
 
-export default function Home({ onLoginClick }: HomeProps) {
+export default function Home({ onLoginClick, onOpenMyWebsites, onOpenAdmin }: HomeProps) {
   const { t } = useI18n()
   const [websites, setWebsites] = useState<Website[]>([])
   const [categories, setCategories] = useState<Category[]>([
@@ -46,7 +48,7 @@ export default function Home({ onLoginClick }: HomeProps) {
 
   return (
     <div className="home">
-      <Header onLoginClick={onLoginClick} />
+      <Header onLoginClick={onLoginClick} onOpenMyWebsites={onOpenMyWebsites} onOpenAdmin={onOpenAdmin} />
       
       <main className="main">
         <div className="container">

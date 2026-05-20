@@ -3,6 +3,7 @@ import {
   fetchCategories,
   fetchWebsiteById,
   fetchWebsites,
+  fetchWebsitesForUser,
   searchWebsitesByName,
 } from "./home.service.js";
 
@@ -23,16 +24,20 @@ export const getCategories = async (req: Request, res: Response) => {
 };
 
 // Get list of websites with optional filters
+// - Authenticated: returns personalized list (initialized from global on first login)
+// - Unauthenticated: returns the global default list
 export const getWebsites = async (req: Request, res: Response) => {
   try {
     const { category, featured } = req.query;
 
     const filters: { categoryId?: string; featured?: boolean } = {};
-    if (typeof category === "string") {
-      filters.categoryId = category;
-    }
-    if (featured === "true") {
-      filters.featured = true;
+    if (typeof category === "string") filters.categoryId = category;
+    if (featured === "true") filters.featured = true;
+
+    if (req.user) {
+      const websites = await fetchWebsitesForUser(req.user.sub, filters);
+      res.json(websites);
+      return;
     }
 
     const websites = await fetchWebsites(filters);

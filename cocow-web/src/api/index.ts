@@ -1,4 +1,4 @@
-import type { Website, Category } from "../types";
+import type { Website, Category, UserWebsite, LocalUser } from "../types";
 import type { AuthUser } from "../context/AuthContext";
 
 // ── Home API ──────────────────────────────────────────────────────────────
@@ -93,4 +93,160 @@ export async function logoutFromApi(): Promise<void> {
     method: "POST",
     credentials: "include",
   });
+}
+
+// ── Home Search API ───────────────────────────────────────────────────────
+
+/**
+ * Search websites by name on the backend (case-insensitive).
+ */
+export async function searchWebsites(query: string): Promise<Website[]> {
+  const params = new URLSearchParams({ q: query });
+  const response = await fetch(`/api/v1/home/search?${params}`);
+  if (!response.ok) {
+    throw new Error(`Search failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Fetch a single website by ID with its category.
+ */
+export async function fetchWebsiteById(id: string): Promise<Website> {
+  const response = await fetch(`${API_BASE}/websites/${id}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch website: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// ── User Websites API ─────────────────────────────────────────────────────
+const USER_WEBSITES_API = "/api/v1/user-websites";
+
+/**
+ * Get authenticated user's personal website list.
+ */
+export async function fetchUserWebsites(): Promise<UserWebsite[]> {
+  const response = await fetch(USER_WEBSITES_API, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user websites: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Add a website to user's personal list (idempotent upsert).
+ */
+export async function addUserWebsite(
+  websiteId: string,
+  displayOrder?: number,
+): Promise<UserWebsite> {
+  const body: { websiteId: string; displayOrder?: number } = { websiteId };
+  if (displayOrder !== undefined) body.displayOrder = displayOrder;
+
+  const response = await fetch(USER_WEBSITES_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to add website: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Remove a website from user's personal list.
+ */
+export async function removeUserWebsite(websiteId: string): Promise<void> {
+  const response = await fetch(`${USER_WEBSITES_API}/${websiteId}`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to remove website: ${response.statusText}`);
+  }
+}
+
+/**
+ * Update displayOrder and/or isPinned for a user website entry.
+ */
+export async function patchUserWebsite(
+  websiteId: string,
+  data: { displayOrder?: number; isPinned?: boolean },
+): Promise<UserWebsite> {
+  const response = await fetch(`${USER_WEBSITES_API}/${websiteId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to update website: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Batch reorder user websites atomically.
+ */
+export async function reorderUserWebsites(
+  items: { websiteId: string; displayOrder: number }[],
+): Promise<UserWebsite[]> {
+  const response = await fetch(`${USER_WEBSITES_API}/reorder`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ items }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to reorder websites: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// ── Local Users (Admin) API ───────────────────────────────────────────────
+const LOCAL_USERS_API = "/api/v1/local-users";
+
+/**
+ * Get paginated list of local users (ADMIN only).
+ */
+export async function fetchLocalUsers(
+  page = 0,
+  size = 20,
+): Promise<{ users: LocalUser[]; total: number; page: number; size: number; totalPages: number }> {
+  const params = new URLSearchParams({ page: String(page), size: String(size) });
+  const response = await fetch(`${LOCAL_USERS_API}?${params}`, {
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch users: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/**
+ * Change a user's role (ADMIN only).
+ */
+export async function updateUserRole(
+  sub: string,
+  role: "VIEWER" | "ADMIN",
+): Promise<{ sub: string; role: string }> {
+  const response = await fetch(`${LOCAL_USERS_API}/${sub}/role`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ role }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => null);
+    if (response.status === 400 && error?.error === "self_role_change") {
+      throw new Error("Cannot change your own role");
+    }
+    throw new Error(`Failed to update role: ${response.statusText}`);
+  }
+  return response.json();
 }

@@ -20,17 +20,65 @@ model Category {
 }
 
 model Website {
-    id         String    @id @default(uuid()) @db.Uuid
-    name       String    @db.VarChar(100)
-    url        String
-    icon       String
-    categoryId String    @map("category_id") @db.Uuid
-    isFeatured Boolean?  @default(false) @map("is_featured")
-    createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-    updatedAt  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-    category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+    id           String        @id @default(uuid()) @db.Uuid
+    name         String        @db.VarChar(100)
+    url          String
+    icon         String
+    categoryId   String        @map("category_id") @db.Uuid
+    isFeatured   Boolean?      @default(false) @map("is_featured")
+    createdAt    DateTime?     @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt    DateTime?     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+    category     Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+    userWebsites UserWebsite[]
 
     @@index([categoryId], map: "idx_websites_category")
     @@index([isFeatured], map: "idx_websites_featured")
     @@map("websites")
+}
+
+/// 用户个人网站列表（每个用户可订阅全局网站目录中的网站）
+///
+/// 设计说明：
+///   - 符合第三范式（3NF）：所有非键属性仅依赖于主键 (userId, websiteId)，无传递依赖。
+///   - userId 引用 SSO 用户的唯一标识（OIDC sub 字段），不在本库中存储用户档案，
+///     避免与 SSO 数据重复；用户基础信息由 SSO 服务作为唯一数据源维护。
+///   - 网站详情（名称、URL、图标、分类）保留在 websites / categories 全局目录，
+///     后续由 Redis 按 website_id 缓存；只有用户与网站的关联关系及个人设置才写入本表。
+///
+/// 查询性能：
+///   - idx_user_websites_user_id：覆盖最常用查询"获取某用户的全部网站列表"
+///   - idx_user_websites_user_pinned_order：配合 ORDER BY isPinned DESC, displayOrder ASC
+///     排序，使数据库无需二次排序扫描。
+///   - Redis 缓存 key 建议：user:websites:{userId} → [{websiteId, displayOrder, isPinned}]
+///     用户增删/调序时清除对应 key；网站详情走 website:{websiteId} 独立缓存。
+model UserWebsite {
+    id           String   @id @default(uuid()) @db.Uuid
+    /// SSO 用户唯一标识（OIDC sub），不做外键约束以避免与 SSO 服务耦合
+    userId       String   @map("user_id") @db.VarChar(255)
+    websiteId    String   @map("website_id") @db.Uuid
+    /// 用户自定义排列顺序；数值越小越靠前
+    displayOrder Int      @default(0) @map("display_order")
+    /// 是否置顶；置顶项在排序时优先于非置顶项
+    isPinned     Boolean  @default(false) @map("is_pinned")
+    createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+    website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+    @@unique([userId, websiteId], name: "uq_user_website")
+    @@index([userId], map: "idx_user_websites_user_id")
+    @@index([userId, isPinned, displayOrder], map: "idx_user_websites_user_pinned_order")
+    @@map("user_websites")
+}
+
+/// 本地用户档案：以 SSO sub 为唯一键，存储 cocow-home-page 自有角色
+/// 与 SSO 解耦：角色由本服务独立管理，不依赖 SSO userinfo 返回值。
+model LocalUser {
+    /// SSO OIDC sub（字符串形式的用户 ID）
+    sub       String   @id @db.VarChar(255)
+    /// 本地角色：VIEWER（普通用户）| ADMIN（管理员）
+    role      String   @default("VIEWER") @db.VarChar(50)
+    createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+    updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+
+    @@map("local_users")
 }
