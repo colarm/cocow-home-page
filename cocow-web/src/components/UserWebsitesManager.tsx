@@ -6,7 +6,6 @@ import {
   addUserWebsite,
   removeUserWebsite,
   patchUserWebsite,
-  reorderUserWebsites,
 } from '../api'
 import type { UserWebsite, Website } from '../types'
 import './UserWebsitesManager.css'
@@ -92,7 +91,7 @@ export default function UserWebsitesManager({ onClose }: UserWebsitesManagerProp
 
   const handleTogglePin = useCallback(async (entry: UserWebsite) => {
     try {
-      const updated = await patchUserWebsite(entry.websiteId, { isPinned: !entry.isPinned })
+      await patchUserWebsite(entry.websiteId, { isPinned: !entry.isPinned })
       setUserWebsites(prev =>
         prev.map(uw => uw.websiteId === entry.websiteId ? { ...uw, isPinned: !entry.isPinned } : uw)
       )
@@ -124,21 +123,6 @@ export default function UserWebsitesManager({ onClose }: UserWebsitesManagerProp
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reorder')
-    }
-  }, [userWebsites])
-
-  const handleSaveOrder = useCallback(async () => {
-    const items = userWebsites.map((uw, i) => ({
-      websiteId: uw.websiteId,
-      displayOrder: i,
-    }))
-    try {
-      await reorderUserWebsites(items)
-      setUserWebsites(prev =>
-        prev.map((uw, i) => ({ ...uw, displayOrder: i }))
-      )
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save order')
     }
   }, [userWebsites])
 
